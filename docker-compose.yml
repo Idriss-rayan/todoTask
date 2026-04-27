@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15
+    container_name: todo_db
+    environment:
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: todopass
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todo_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: todo_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://todo_user:todopass@db:5432/todo_db
+    volumes:
+      - ./backend:/app  # Pour le hot reload (optionnel)
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+
+  frontend:
+    build: ./frontend/
+    container_name: todo_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
