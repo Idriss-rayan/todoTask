@@ -35,7 +35,7 @@ services:
           target: /app
 
   frontend:
-    build: ./frontend/
+    build: ./frontend
     container_name: todo_frontend
     ports:
       - "8080:80"
